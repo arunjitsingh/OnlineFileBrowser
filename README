@@ -1,0 +1,9 @@
+Now that I know how to use GitHub.. Here's the rundown on this project:
+# INTRODUCTION:
+This is an online file browser, representing the exact files on the file system specified on the server.
+(This 'specification' is done using a .properties file. Check WebContent/WEB-INF/default.properties)
+Uses Java + Servlets and JSP.
+Supports session-based authentication
+# TODO:
+> 1. <del>Learn to use markdown</del>
+> 2. Finish this README

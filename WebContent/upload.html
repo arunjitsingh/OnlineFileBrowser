@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Upload</title>
+	<style type="text/css">
+html, body {width:100%;height:100%;margin:0;padding:0;background:none;}
+#result {
+  position:absolute; display: block;
+  width:250px; left:50%; margin-left:-125px;
+  height:250px; top: 50%; margin-top: -125px;
+  overflow:hidden;
+}
+
+	</style>
+	<script type="text/javascript" charset="utf-8">
+window.onload = function() {
+  var result = (window.location.hash).substring(1);
+  var uploadCompleted = window.top.window.uploadCompleted;
+  if (result.match(/success/ig)) {
+    document.getElementById('result-image').src = "resources/images/upload-success.png";
+    if (uploadCompleted && typeof(uploadCompleted) === 'function') {
+      uploadCompleted(true);
+    }
+  } else {
+    document.getElementById('result-image').src = "resources/images/upload-failure.png";
+    if (uploadCompleted && typeof(uploadCompleted) === 'function') {
+      uploadCompleted(false);
+    }
+  }
+};
+	</script>
+</head>
+<body>
+  <div id="result"><img id="result-image"></div>
+</body>
+</html>

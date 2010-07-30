@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
+  <display-name>Online File Browser</display-name>
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>default.html</welcome-file>
+    <welcome-file>default.jsp</welcome-file>
+  </welcome-file-list>
+  <servlet>
+    <description>The main browser servlet for the application</description>
+    <display-name>BrowserServlet</display-name>
+    <servlet-name>BrowserServlet</servlet-name>
+    <servlet-class>ajs.web.BrowserServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>BrowserServlet</servlet-name>
+    <url-pattern>/browser</url-pattern>
+    <url-pattern>/browser/*</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>DataTransferServlet</display-name>
+    <servlet-name>DataTransferServlet</servlet-name>
+    <servlet-class>ajs.web.DataTransferServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DataTransferServlet</servlet-name>
+    <url-pattern>/data-transfer</url-pattern>
+    <url-pattern>/data-transfer/*</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>AuthenticationServlet</display-name>
+    <servlet-name>AuthenticationServlet</servlet-name>
+    <servlet-class>ajs.web.AuthenticationServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>AuthenticationServlet</servlet-name>
+    <url-pattern>/auth</url-pattern>
+    <url-pattern>/auth/*</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>UploaderServlet</display-name>
+    <servlet-name>UploaderServlet</servlet-name>
+    <servlet-class>ajs.web.UploaderServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UploaderServlet</servlet-name>
+    <url-pattern>/upload</url-pattern>
+    <url-pattern>/upload/*</url-pattern>
+  </servlet-mapping>
+</web-app>

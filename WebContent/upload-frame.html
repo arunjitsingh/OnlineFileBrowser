@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Upload</title>
+  
+  <style type="text/css">
+html, body {width:100%;height:100%;margin:0;padding:0;background:none;}
+#uploader {
+  position:absolute; display: block;
+  width:250px; left:50%; margin-left:-125px;
+  height:250px; top: 50%; margin-top: -125px;
+  text-align: center;
+  overflow: hidden;
+}
+#uploader form {
+  position: absolute; top:75px;
+  height: 100px; width: 250px;
+}
+#uploader form input {
+    font: 12px monospace;
+}
+#uploader input[type="submit"] {
+  position:absolute; bottom: 0px;
+  height: 24px; width: 100px;
+  font-size: 24px; text-align: center;
+}
+  </style>
+  
+  <script type="text/javascript">
+window.onload = function() {
+  var form = document.getElementById('file-upload');
+  var resource = (window.location.hash).substring(1);
+  if (resource.match(/(upload|data\-transfer)/ig)) {
+    form.action = resource;
+  }
+};
+  </script>  
+</head>
+<body>
+  <div id="uploader">
+    <form action="" id="file-upload"
+      method="post" accept-charset="utf-8"
+      enctype="multipart/form-data" id="file-form">
+      <p><input type="file" name="file" id="file-input"><BR>
+      <input type="submit" value="Upload&rarr;"></p>
+    </form>
+  </div>
+</body>
+</html>
