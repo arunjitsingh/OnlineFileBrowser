@@ -22,7 +22,7 @@ if (/*Conditions the user is logged in*/
   <script src="lib/jquery.js"></script><script src="lib/jquery.rest.js"></script>
   <script src="lib/oo.js"></script>
   <script src="lib/date.js"></script>
-  <script src="lib/FI-cat.js"></script>
+  <script src="lib/FileIt.js"></script>
   <script src="resources/scripts/index.js"></script>
 </head>
 <body onload="loadApplication()">

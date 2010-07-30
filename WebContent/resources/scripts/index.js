@@ -151,6 +151,7 @@ $APP.ListItemTemplate = {
 			var id = elt.data().id;
 //			FI.log(elt.data(), 'data');
 			$APP.fetchData(id, $APP.didFetchData);
+			return true;
 		}
 	}
 };
@@ -170,7 +171,7 @@ var loadApplication = function() {
 		|| typeof(jQuery)==='undefined'	// jQuery, jquery.js
 		|| typeof($.json)==='undefined' // jQuery REST, jquery.rest.js
 		|| typeof(Class)==='undefined' 	//OO, oo-min.js
-		|| typeof(FI)==='undefined'		//FI, FI-cat.js
+		|| typeof(FI)==='undefined'		//FI, FileIt.js
 		|| typeof($APP)==='undefined'	//this application
 		) {
 		alert("Application load failed. Try reloading");
@@ -222,6 +223,7 @@ var loadApplication = function() {
 			}
 			$APP.deletionQueue.add($APP.currentSelection);
 		}
+		return true;
 	});
 	
 	$('#toolbar #create_btn').click(function(evt) {
