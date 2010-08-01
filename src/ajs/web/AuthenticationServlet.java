@@ -23,7 +23,6 @@ public class AuthenticationServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
     
 	private ServletContext context = null;
-//	private Requester requester = null;
 	private Responder responder = null;
     /**
      * @see HttpServlet#HttpServlet()
@@ -67,9 +66,9 @@ public class AuthenticationServlet extends HttpServlet {
 			object = Session.user(current);
 		}
 		if (object != null) {
-			responder.json(object.toString());
+			responder.json().send(object.toString());
 		} else {
-			responder.error(403, "User could not be found");
+			responder.json().error(403, "User could not be found");
 		}
 		this.responder = null;
 	}

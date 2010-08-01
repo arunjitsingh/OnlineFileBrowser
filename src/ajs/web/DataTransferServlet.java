@@ -89,11 +89,11 @@ public class DataTransferServlet extends HttpServlet {
 				|| file.isDirectory()) {
 			this.responder = new Responder(response);
 			if (file.isDirectory()) {
-				responder.error(405, "Directory compression not available");
+				responder.json().error(405, "Directory compression not available");
 			} else if(!file.exists()) {
-				responder.error(404, "Resource not found");
+				responder.json().error(404, "Resource not found");
 			} else {
-				responder.error(403, "Cannot modify resource");
+				responder.json().error(403, "Cannot modify resource");
 			}
 			this.responder.close();
 			this.responder = null;
@@ -158,7 +158,7 @@ public class DataTransferServlet extends HttpServlet {
 			: null;
 		if (/* set the failure conditions*/
 				path == null) {
-			responder.error(403, "Cannot modify resource");
+			responder.json().error(403, "Cannot modify resource");
 			this.responder.close();
 			this.responder = null;
 		} else if (ServletFileUpload.isMultipartContent(request)) {
@@ -174,23 +174,23 @@ public class DataTransferServlet extends HttpServlet {
 					InputStream in = item.openStream();
 					if (item.isFormField()) {
 						System.out.println("DataTransfer#doPost .. wanted file, got form fields.. NO-OP");
-						responder.error(400, "No file attached!");
+						responder.json().error(400, "No file attached!");
 					} else {
 						String fileName = item.getName();
 						String newPath = FS.concatPath(path, fileName);
 						if (FileData.save(newPath, in)) {
 							// SUCCESS!
 							// TODO: add progress indicators
-							responder.json(FileController.getFileInformation(newPath, Filter.defaultFilter()));
+							responder.json().send(FileController.getFileInformation(newPath, Filter.defaultFilter()));
 							
 						} else {
-							responder.error(500, "Could not create the file!");
+							responder.json().error(500, "Could not create the file!");
 						}
 					}
 					in.close();
 				}
 			} catch (Exception e) {
-				responder.error(500, "Error while uploading the file");
+				responder.json().error(500, "Error while uploading the file");
 				e.printStackTrace();
 			}
 		}

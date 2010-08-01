@@ -80,7 +80,7 @@ public class BrowserServlet extends HttpServlet {
 					: null;
 		System.out.println("Requested path: " + path);
 		if (path == null) {
-			responder.error(403, "Cannot get this resource!");
+			responder.json().error(403, "Cannot get this resource!");
 			this.responder = null;
 			return;
 		}
@@ -88,9 +88,9 @@ public class BrowserServlet extends HttpServlet {
 		// file information
 		FileInformation fileInfo = FileController.getFileInformation(path, Filter.defaultFilter());
 		if (fileInfo == null) {
-			responder.error(FileController.error.code(), FileController.error.error());
+			responder.json().error(FileController.error.code(), FileController.error.error());
 		} else {
-			responder.json(fileInfo);
+			responder.json().send(fileInfo);
 		}
 		
 		this.responder = null;
@@ -114,15 +114,15 @@ public class BrowserServlet extends HttpServlet {
 			: null;
 		System.out.println("Requested path: " + path);
 		if (path == null) {
-			responder.error(403, "Cannot create a directory here!");
+			responder.json().error(403, "Cannot create a directory here!");
 			this.responder = null;
 			return;
 		}
 		
 		if (FileController.createDirectory(path)) {
-			responder.json(FileController.getFileInformation(path, Filter.defaultFilter()), 201);
+			responder.json().send(201, FileController.getFileInformation(path, Filter.defaultFilter()));
 		} else {
-			responder.error(409, "Could not create a new directory");
+			responder.json().error(409, "Could not create a new directory");
 		}
 		
 		this.responder = null;
@@ -149,7 +149,7 @@ public class BrowserServlet extends HttpServlet {
 					: null;
 		System.out.println("Requested path: " + path);
 		if (path == null) {
-			responder.error(403, "Cannot rename this resource!");
+			responder.json().error(403, "Cannot rename this resource!");
 			this.responder = null;
 			return;
 		}
@@ -162,7 +162,7 @@ public class BrowserServlet extends HttpServlet {
 				if (requester.object().has("error")) {
 					String error = requester.object().get("error").toString();
 					System.out.println("error! " + error);
-					responder.error(400, error);
+					responder.json().error(400, error);
 					this.requester = null;
 					this.responder = null;
 					return;
@@ -171,7 +171,7 @@ public class BrowserServlet extends HttpServlet {
 				}
 			}
 		} catch (JSONException jsone) {
-			responder.error(500, "/browser#Server error.. Could not parse request");
+			responder.json().error(500, "/browser#Server error.. Could not parse request");
 			this.responder = null;
 			jsone.printStackTrace();
 			return;
@@ -187,7 +187,7 @@ public class BrowserServlet extends HttpServlet {
 				newName == null 
 				|| newName.equalsIgnoreCase("")
 				|| !ajs.util.Regex.find(FS.RE_VALID_FILE_NAME, newName)) {
-			responder.error(400, "'" + newName + "' is not a vaild filename");
+			responder.json().error(400, "'" + newName + "' is not a vaild filename");
 			this.responder = null;
 			return;
 		}
@@ -195,9 +195,9 @@ public class BrowserServlet extends HttpServlet {
 		String to = FS.concatPath(parent, newName);
 		
 		if (FileController.moveFile(path, to)) {
-			responder.json(null, 200);
+			responder.json().send(200, null);
 		} else {
-			responder.error(FileController.error.code(), FileController.error.error());
+			responder.json().error(FileController.error.code(), FileController.error.error());
 		}
 		
 		this.responder = null;
@@ -227,7 +227,7 @@ public class BrowserServlet extends HttpServlet {
 		
 		response.setStatus(202);// Accepted
 		if (FileController.deleteFile(path, false)) {
-			responder.json(null, 200);
+			responder.json().send(200, null);
 		} else {
 			responder.error(FileController.error.code(), FileController.error.error());
 		}
