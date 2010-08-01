@@ -1,7 +1,7 @@
-/**
+	/**
  * @author arunjitsingh
  */
-var $APP = $APP || {VERSION:'1.a'};
+var $APP = $APP || {VERSION:'1.a.2541'};
 $APP.applicationRoot = '/OnlineFileBrowser';
 $APP.resources = {};
 $APP.resources['browser'] = '/browser';
@@ -13,7 +13,6 @@ $APP.LOGOUT = "logout.jsp";
 $APP.user = {};
 
 $APP.currentSelection = null;
-$APP.previousSelection = null;
 $APP.currentColumn = null;
 
 $APP.deletionQueue = {
@@ -33,8 +32,8 @@ $APP.getResource = function(res) {
 };
 
 $APP.asResource = function(resource,request) {
-	if (request.match(/:root/i)) request='';
-	return $APP.getResource(resource) + request;
+	if (request && request.match(/:root/i)) request='';
+	return ($APP.getResource(resource) + request);
 };
 
 $APP.fetchData = function(uri, callback){
@@ -85,8 +84,16 @@ $APP.deleteResource = function(uri, callback) {
 $APP.didDelete = function(response) {
 	if (response.status) {
 		$APP.deletionQueue.execute();
-		$APP.currentSelection = $APP.previousSelection;
-		$APP.columns.selectColumn($APP.currentColumn.data().viewIndex);
+		$APP.currentSelection = $('.selected').last();
+		if ($APP.currentSelection.length < 1) {
+			FI.log("nothing selected", "$APP.didDelete");
+			$APP.currentSelection = $('#homedata');
+			$APP.columns.selectColumn(0);
+		} else {
+			$APP.currentColumn = $APP.currentSelection.first().parents('.column');
+			var vi = $APP.currentColumn.data().viewIndex;
+			$APP.columns.selectColumn(vi);
+		}
 	}
 };
 
@@ -129,7 +136,7 @@ $APP.ListItemTemplate = {
 	ACTION: {
 		click: function(evt) {
 			var elt = $(evt.target);
-			$APP.currentColumn = elt.parent().parent();
+			$APP.currentColumn = elt.parents('.column');
 			var data = $APP.currentColumn.data();
 //			console.log("data: " + JSON.stringify(data));
 			var idx = data.viewIndex;
@@ -137,16 +144,15 @@ $APP.ListItemTemplate = {
 			$APP.columns.selectColumn(idx);
 			if (evt.metaKey || evt.ctrlKey) {
 				$(elt).removeClass('selected');
-				$APP.currentSelection = $APP.previousSelection;
+				$APP.currentSelection = $('.selected').last();
 				if ($('.list .selected').length < 1) {
 					// nothing is selected, refer to #homedata
 					$APP.currentSelection = $('#homedata');
 				}
 				return true;
 			}
-			elt.parent().children().removeClass('selected');
+			elt.siblings('.selected').removeClass('selected');
 			elt.addClass('selected');
-			$APP.previousSelection = $APP.currentSelection;
 			$APP.currentSelection = elt;
 			var id = elt.data().id;
 //			FI.log(elt.data(), 'data');
@@ -172,6 +178,7 @@ var loadApplication = function() {
 		|| typeof($.json)==='undefined' // jQuery REST, jquery.rest.js
 		|| typeof(Class)==='undefined' 	//OO, oo-min.js
 		|| typeof(FI)==='undefined'		//FI, FileIt.js
+		|| typeof(DATEJS)==='undefined' //date.js
 		|| typeof($APP)==='undefined'	//this application
 		) {
 		alert("Application load failed. Try reloading");
@@ -201,8 +208,7 @@ var loadApplication = function() {
 	$('#toolbar #home_btn').click(function(evt) {
 		$APP.columns.selectColumn(-1);
 		var req = $APP.user.home;
-		$APP.previousSelection = $APP.currentSelection;
-		$APP.currentSelection = $('#homedata').data({id:req});
+		$APP.currentSelection = $('#homedata').data({id:req, isDirectory:true});
 		$APP.fetchData(req, $APP.didFetchData);
 	});
 	
@@ -213,60 +219,81 @@ var loadApplication = function() {
 	});
 	
 	$('#toolbar #trash_btn').click(function(evt) {
-		if (!confirm('Deletion cannot be reversed! Continue?'))
-			return false;
-		if ($APP.currentSelection) {
-			var d = $APP.currentSelection.data();
-			var id = d.id ? d.id : null;
+		if ($APP.currentSelection && $('.selected').length > 0) {
+			if (!confirm('Deletion cannot be reversed! Continue?'))
+				return false;
+			var elt = $APP.currentSelection = $('.selected').last();
+			var data = elt.data();
+			var id = data.id ? data.id : null;
 			if (id) {
 				$APP.deleteResource(id, $APP.didDelete);
+				$APP.deletionQueue.add(elt);
 			}
-			$APP.deletionQueue.add($APP.currentSelection);
+			return false;
 		}
-		return true;
+		return false;
 	});
 	
 	$('#toolbar #create_btn').click(function(evt) {
 		if ($APP.currentSelection) {
 			//FI.log($APP.currentSelection.data(), "$APP.currentSelection.data()");
-			var id = $APP.currentSelection.data().id,
-				isD = $APP.currentSelection.data().isDirectory;
+			var eltcs = $APP.currentSelection.first();
+			var id = eltcs.data().id,
+				isD = eltcs.data().isDirectory;
 			if (id) {
 				if (isD !== undefined && isD == false) {
-					id = id.substring(0, id.lastIndexOf('/'));
-					$APP.currentSelection = $APP.previousSelection;
+					$APP.currentSelection.removeClass('.selected');
+					$APP.currentSelection = $('.selected').last();
+					id = $APP.currentSelection.data().id;
 				}
 				$('#overlay').css({'visibility':'visible'});
 				var elt = $('#new-dir');
 				elt.css({'visibility':'visible'});
-				$('.currentSelection', elt).text($APP.Transformers.ID(id)+"/");
-				var resource = $APP.asResource('browser', id);
-				$('#new-dir-ok', elt).click(function(evt) {
+				$('.currentSelection', elt).text($APP.Transformers.ID(id)+"/");				
+				$('#new-dir-ok').click(function(evt) {
 					var newdir = $('#new-dir-name', elt).val();
 					if (newdir && newdir !== "") {
-						resource += "/" + newdir;
-						$.create(resource,{},function(response) {
+						var uri = "";
+						uri = $APP.asResource('browser', id);
+						uri += "/" + newdir;
+						FI.log(uri, "Creating");
+						$.create(uri,{},function(response) {
 							FI.log(response, "Creation response");
 							// hide everything
 							elt.css({'visibility':'hidden'});
 							$('#overlay').css({'visibility':'hidden'});
-							$APP.columns.selectColumn($APP.currentColumn.data().viewIndex);
-							$APP.fetchData($APP.currentSelection.data().id, $APP.didFetchData);
+							$('#new-dir-name').val("");
+							$APP.currentColumn = $APP.currentSelection.first().parents('.column');
+							if ($APP.currentColumn.length < 1) {
+								$APP.currentSelection = $('#homedata');
+								$APP.columns.selectColumn(-1);
+							} else {
+								var vi = $APP.currentColumn.data().viewIndex-1;
+								$APP.columns.selectColumn(vi);
+							}							
+							$APP.fetchData(id, $APP.didFetchData);
 						});
+					} else {
+						$('#new-dir-name')[0].focus();
 					}
+					return false;
 				});
 			}
 		}
+		return false;
 	});
 	
 	$('#toolbar #upload_btn').click(function(evt) {
 		if ($APP.currentSelection) {
 			//FI.log($APP.currentSelection.data(), "$APP.currentSelection.data()");
-			var id = $APP.currentSelection.data().id,
-				isD = $APP.currentSelection.data().isDirectory;
+			var eltcs = $APP.currentSelection;
+			var id = eltcs.data().id,
+				isD = eltcs.data().isDirectory;
 			if (id) {
 				if (isD !== undefined && isD == false) {
-					id = id.substring(0, id.lastIndexOf('/'));
+					$APP.currentSelection.removeClass('.selected');
+					$APP.currentSelection = $('.selected').last();
+					id = $APP.currentSelection.data().id;
 				}
 				$('#overlay').css({'visibility':'visible'});
 				var elt = $('#upload-file');
@@ -276,6 +303,7 @@ var loadApplication = function() {
 				$('#upload-frame', elt).attr('src', ('upload-frame.html#'+resource));
 			}
 		}
+		return false;
 	});
 	
 	$('#file-download').click(function() {
@@ -304,18 +332,21 @@ var loadApplication = function() {
 		    } else {
 		    	info = response.content;
 		    }
-	    	window.sessionStorage['user'] = (response.content);
-	    	$APP.user = JSON.parse(sessionStorage['user']);	    	
+	    	window.sessionStorage['user'] = info;
+	    	$APP.user = JSON.parse(window.sessionStorage['user']);
 	    }
 	});
 	
-	$('body')[0].style['visibility'] = 'visible';	
+	$('body')[0].style['visibility'] = 'visible';
 };
 
 window.uploadCompleted = function(success) {
 	if (success) {
-		var vi = ($APP.currentColumn) ? $APP.currentColumn.data().viewIndex : -1;
+		$APP.currentColumn = $APP.currentSelection.first().parents('.column');
+		var vi = $APP.currentColumn.data().viewIndex;
 		$APP.columns.selectColumn(vi);
-		$APP.fetchData($APP.currentSelection.data().id, $APP.didFetchData);
+		var data = $APP.currentSelection.data(),
+			id = data.id;
+		$APP.fetchData(id, $APP.didFetchData);
 	}
 };
