@@ -1,7 +1,7 @@
-	/**
+/**
  * @author arunjitsingh
  */
-var $APP = $APP || {VERSION:'1.a.2541'};
+var $APP = $APP || {VERSION:'1.b.2220'};
 $APP.applicationRoot = '/OnlineFileBrowser';
 $APP.resources = {};
 $APP.resources['browser'] = '/browser';
@@ -15,24 +15,14 @@ $APP.user = {};
 $APP.currentSelection = null;
 $APP.currentColumn = null;
 
-$APP.deletionQueue = {
-	queue: [],
-	add: function(elt) {
-		$APP.deletionQueue.queue.push(elt);
-	},
-	execute: function() {
-		$.each($APP.deletionQueue.queue, function(idx,elt) {
-			$(elt).remove();
-		});
-	}
-};
+$APP.deletion = null;
 
 $APP.getResource = function(res) {
 	return $APP.applicationRoot + $APP.resources[res] + '/';
 };
 
 $APP.asResource = function(resource,request) {
-	if (request && request.match(/:root/i)) request='';
+	if (request && request.match(/^:root$/i)) request='';
 	return ($APP.getResource(resource) + request);
 };
 
@@ -83,16 +73,17 @@ $APP.deleteResource = function(uri, callback) {
 
 $APP.didDelete = function(response) {
 	if (response.status) {
-		$APP.deletionQueue.execute();
-		$APP.currentSelection = $('.selected').last();
-		if ($APP.currentSelection.length < 1) {
-			FI.log("nothing selected", "$APP.didDelete");
-			$APP.currentSelection = $('#homedata');
-			$APP.columns.selectColumn(0);
-		} else {
-			$APP.currentColumn = $APP.currentSelection.first().parents('.column');
+		var elt = ($APP.deletion) ? $APP.deletion : $('.selected').last();
+		$APP.currentColumn = elt.first().parents('.column');
+		if ($APP.currentColumn.length > 0) {
 			var vi = $APP.currentColumn.data().viewIndex;
 			$APP.columns.selectColumn(vi);
+		}
+		elt.remove();
+		$APP.deletion = null;
+		$APP.currentSelection = $('.selected').last();
+		if ($APP.currentSelection.length < 1) {
+			$APP.currentSelection = $('#homedata');
 		}
 	}
 };
@@ -220,22 +211,20 @@ var loadApplication = function() {
 	
 	$('#toolbar #trash_btn').click(function(evt) {
 		if ($APP.currentSelection && $('.selected').length > 0) {
-			if (!confirm('Deletion cannot be reversed! Continue?'))
-				return false;
-			var elt = $APP.currentSelection = $('.selected').last();
-			var data = elt.data();
-			var id = data.id ? data.id : null;
-			if (id) {
-				$APP.deleteResource(id, $APP.didDelete);
-				$APP.deletionQueue.add(elt);
+			if (confirm('Deletion cannot be reversed! Continue?')) {
+				var elt = $APP.currentSelection = $('.selected').last();
+				var data = elt.data();
+				var id = data.id ? data.id : null;
+				if (id) {
+					$APP.deleteResource(id, $APP.didDelete);
+					$APP.deletion = elt;
+				}
 			}
-			return false;
 		}
-		return false;
 	});
 	
 	$('#toolbar #create_btn').click(function(evt) {
-		if ($APP.currentSelection) {
+		if ($APP.currentSelection && $APP.currentSelection.length > 0) {
 			//FI.log($APP.currentSelection.data(), "$APP.currentSelection.data()");
 			var eltcs = $APP.currentSelection.first();
 			var id = eltcs.data().id,
@@ -250,37 +239,20 @@ var loadApplication = function() {
 				var elt = $('#new-dir');
 				elt.css({'visibility':'visible'});
 				$('.currentSelection', elt).text($APP.Transformers.ID(id)+"/");				
-				$('#new-dir-ok').click(function(evt) {
-					var newdir = $('#new-dir-name', elt).val();
+				$('#new-dir-ok').click(function() {
+					var newdir = $('#new-dir-name').val();
 					if (newdir && newdir !== "") {
-						var uri = "";
-						uri = $APP.asResource('browser', id);
-						uri += "/" + newdir;
-						FI.log(uri, "Creating");
-						$.create(uri,{},function(response) {
-							FI.log(response, "Creation response");
-							// hide everything
-							elt.css({'visibility':'hidden'});
-							$('#overlay').css({'visibility':'hidden'});
-							$('#new-dir-name').val("");
-							$APP.currentColumn = $APP.currentSelection.first().parents('.column');
-							if ($APP.currentColumn.length < 1) {
-								$APP.currentSelection = $('#homedata');
-								$APP.columns.selectColumn(-1);
-							} else {
-								var vi = $APP.currentColumn.data().viewIndex-1;
-								$APP.columns.selectColumn(vi);
-							}							
-							$APP.fetchData(id, $APP.didFetchData);
-						});
+						$APP.createNewDir(id, newdir);
+						// hide everything
+						elt.css({'visibility':'hidden'});
+						$('#overlay').css({'visibility':'hidden'});
+						$('#new-dir-name').val("");
 					} else {
 						$('#new-dir-name')[0].focus();
 					}
-					return false;
 				});
 			}
 		}
-		return false;
 	});
 	
 	$('#toolbar #upload_btn').click(function(evt) {
@@ -303,7 +275,6 @@ var loadApplication = function() {
 				$('#upload-frame', elt).attr('src', ('upload-frame.html#'+resource));
 			}
 		}
-		return false;
 	});
 	
 	$('#file-download').click(function() {
@@ -338,6 +309,29 @@ var loadApplication = function() {
 	});
 	
 	$('body')[0].style['visibility'] = 'visible';
+};
+
+$APP.createNewDir = function(id, dirname) {
+	var elt = $('#new-dir');
+	var uri = $APP.asResource('browser', id) + "/" + newdir;
+	FI.log(uri, "Creating");
+	$.create(uri, {}, $APP.newDirCreated);
+};
+
+$APP.newDirCreated = function(response) {
+	FI.log(response, "Creation response");
+	$APP.currentSelection = $('.selected').last();
+	if ($APP.currentSelection.length < 1) {
+		$APP.currentSelection = $('#homedata');
+		$APP.columns.selectColumn(-1);
+	} else {
+		$APP.currentColumn = $APP.currentSelection.first().parents('.column');
+		var vi = $APP.currentColumn.data().viewIndex-1;
+		$APP.columns.selectColumn(vi);
+	}
+	var id = $APP.currentSelection.data().id;
+	$APP.fetchData(id, $APP.didFetchData);
+
 };
 
 window.uploadCompleted = function(success) {
