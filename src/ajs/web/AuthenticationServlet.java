@@ -18,6 +18,7 @@ import ajs.files.FS;
  * Manages user authentication
  * @author arunjitsingh
  * @version 0.1.1 : this was introduced
+ * @version 0.2.0 : JSONP
  */
 public class AuthenticationServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -58,6 +59,8 @@ public class AuthenticationServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 						throws ServletException, IOException {
 		this.responder = new Responder(response);
+		String jsonp = Requester.callbackForJSONP(request);
+		System.out.println(jsonp);
 		HttpSession current = request.getSession();
 		Integer id = (Integer)Session.get(current, Session.ID_KEY);
 		System.out.println("/auth#doGet(): " + Session.ID_KEY + ": "+id);
@@ -66,9 +69,9 @@ public class AuthenticationServlet extends HttpServlet {
 			object = Session.user(current);
 		}
 		if (object != null) {
-			responder.json().send(object.toString());
+			responder.jsonp(jsonp).send(object.toString());
 		} else {
-			responder.json().error(403, "User could not be found");
+			responder.jsonp(jsonp).error(403, "User could not be found");
 		}
 		this.responder = null;
 	}

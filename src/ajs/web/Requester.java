@@ -2,6 +2,7 @@ package ajs.web;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Enumeration;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -16,7 +17,7 @@ import ajs.util.JSON;
  * @return
  */
 public class Requester {
-	private int BUFFER_SIZE = 1024;
+	private final int BUFFER_SIZE = 1024;
 	
 	private HttpServletRequest request = null;
 	private String body = null;
@@ -58,5 +59,16 @@ public class Requester {
 			this.body = "{\"error\":\"Could not parse the body\"}";
 			System.out.println("Could not parse the body");
 		}
-	}	
+	}
+	
+	public static String callbackForJSONP(HttpServletRequest request) {
+		String callback = request.getParameter("callback");
+		if (callback != null) {
+			return callback;
+		} else if((callback = request.getParameter("jsonp")) != null) {
+			return callback;
+		} else {
+			return null;
+		}
+	}
 }

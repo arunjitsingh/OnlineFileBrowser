@@ -24,7 +24,8 @@ import ajs.files.Filter;
  * Servlet implementation class DataTransferServlet
  * Manages file upload (POST) and download (GET)
  * @author arunjitsingh
- * @version 0.1.1 TODO: integrate {@link ajs.web.AuthenticationServlet}
+ * @version 0.1.1 Includes authentication
+ * @version 0.2.0 : JSONP
  */
 public class DataTransferServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -75,7 +76,8 @@ public class DataTransferServlet extends HttpServlet {
 		 *     initiate EITHER the responder or the download
 		 *     use conditions to branch..
 		 */
-			
+		String jsonp = Requester.callbackForJSONP(request);
+		System.out.println(jsonp);
 		// the requested path
 		String uri = request.getPathInfo();
 		String path = (/*Conditions for valid URI*/
@@ -89,11 +91,11 @@ public class DataTransferServlet extends HttpServlet {
 				|| file.isDirectory()) {
 			this.responder = new Responder(response);
 			if (file.isDirectory()) {
-				responder.json().error(405, "Directory compression not available");
+				responder.jsonp(jsonp).error(405, "Directory compression not available");
 			} else if(!file.exists()) {
-				responder.json().error(404, "Resource not found");
+				responder.jsonp(jsonp).error(404, "Resource not found");
 			} else {
-				responder.json().error(403, "Cannot modify resource");
+				responder.jsonp(jsonp).error(403, "Cannot modify resource");
 			}
 			this.responder.close();
 			this.responder = null;
@@ -149,7 +151,8 @@ public class DataTransferServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 						throws ServletException, IOException {
 		this.responder = new Responder(response);
-		
+		String jsonp = Requester.callbackForJSONP(request);
+		System.out.println(jsonp);
 		// the requested path
 		String uri = request.getPathInfo();
 		String path = (/*Conditions for valid URI*/
@@ -158,7 +161,7 @@ public class DataTransferServlet extends HttpServlet {
 			: null;
 		if (/* set the failure conditions*/
 				path == null) {
-			responder.json().error(403, "Cannot modify resource");
+			responder.jsonp(jsonp).error(403, "Cannot modify resource");
 			this.responder.close();
 			this.responder = null;
 		} else if (ServletFileUpload.isMultipartContent(request)) {
@@ -174,23 +177,23 @@ public class DataTransferServlet extends HttpServlet {
 					InputStream in = item.openStream();
 					if (item.isFormField()) {
 						System.out.println("DataTransfer#doPost .. wanted file, got form fields.. NO-OP");
-						responder.json().error(400, "No file attached!");
+						responder.jsonp(jsonp).error(400, "No file attached!");
 					} else {
 						String fileName = item.getName();
 						String newPath = FS.concatPath(path, fileName);
 						if (FileData.save(newPath, in)) {
 							// SUCCESS!
 							// TODO: add progress indicators
-							responder.json().send(FileController.getFileInformation(newPath, Filter.defaultFilter()));
+							responder.jsonp(jsonp).send(FileController.getFileInformation(newPath, Filter.defaultFilter()));
 							
 						} else {
-							responder.json().error(500, "Could not create the file!");
+							responder.jsonp(jsonp).error(500, "Could not create the file!");
 						}
 					}
 					in.close();
 				}
 			} catch (Exception e) {
-				responder.json().error(500, "Error while uploading the file");
+				responder.jsonp(jsonp).error(500, "Error while uploading the file");
 				e.printStackTrace();
 			}
 		}

@@ -26,6 +26,7 @@ import org.json.JSONException;
  * DELETE	Delete the file/directory at the path specified
  * @author arunjitsingh
  * @version 0.1.1 Includes authentication
+ * @version 0.2.0 : JSONP
  */
 public class BrowserServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -72,6 +73,8 @@ public class BrowserServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) 
 						throws ServletException, IOException {
 		this.responder = new Responder(response);
+		String jsonp = Requester.callbackForJSONP(request);
+		System.out.println(jsonp);
 		// the requested path
 		String uri = request.getPathInfo();
 		String path = (/*Conditions for valid URI*/
@@ -80,7 +83,7 @@ public class BrowserServlet extends HttpServlet {
 					: null;
 		System.out.println("Requested path: " + path);
 		if (path == null) {
-			responder.json().error(403, "Cannot get this resource!");
+			responder.jsonp(jsonp).error(403, "Cannot get this resource!");
 			this.responder = null;
 			return;
 		}
@@ -88,9 +91,9 @@ public class BrowserServlet extends HttpServlet {
 		// file information
 		FileInformation fileInfo = FileController.getFileInformation(path, Filter.defaultFilter());
 		if (fileInfo == null) {
-			responder.json().error(FileController.error.code(), FileController.error.error());
+			responder.jsonp(jsonp).error(FileController.error.code(), FileController.error.error());
 		} else {
-			responder.json().send(fileInfo);
+			responder.jsonp(jsonp).send(fileInfo);
 		}
 		
 		this.responder = null;
@@ -105,7 +108,8 @@ public class BrowserServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) 
 						throws ServletException, IOException {
 		this.responder = new Responder(response);
-		
+		String jsonp = Requester.callbackForJSONP(request);
+		System.out.println(jsonp);
 		// the requested path
 		String uri = request.getPathInfo();
 		String path = (/*Conditions for valid URI*/
@@ -114,15 +118,15 @@ public class BrowserServlet extends HttpServlet {
 			: null;
 		System.out.println("Requested path: " + path);
 		if (path == null) {
-			responder.json().error(403, "Cannot create a directory here!");
+			responder.jsonp(jsonp).error(403, "Cannot create a directory here!");
 			this.responder = null;
 			return;
 		}
 		
 		if (FileController.createDirectory(path)) {
-			responder.json().send(201, FileController.getFileInformation(path, Filter.defaultFilter()));
+			responder.jsonp(jsonp).send(201, FileController.getFileInformation(path, Filter.defaultFilter()));
 		} else {
-			responder.json().error(409, "Could not create a new directory");
+			responder.jsonp(jsonp).error(409, "Could not create a new directory");
 		}
 		
 		this.responder = null;
@@ -136,6 +140,8 @@ public class BrowserServlet extends HttpServlet {
 	protected void doPut(HttpServletRequest request, HttpServletResponse response) 
 						throws ServletException, IOException {
 		this.responder = new Responder(response);
+		String jsonp = Requester.callbackForJSONP(request);
+		System.out.println(jsonp);
 		HttpSession current = request.getSession();
 		// the requested path
 		String uri = request.getPathInfo();
@@ -149,7 +155,7 @@ public class BrowserServlet extends HttpServlet {
 					: null;
 		System.out.println("Requested path: " + path);
 		if (path == null) {
-			responder.json().error(403, "Cannot rename this resource!");
+			responder.jsonp(jsonp).error(403, "Cannot rename this resource!");
 			this.responder = null;
 			return;
 		}
@@ -162,7 +168,7 @@ public class BrowserServlet extends HttpServlet {
 				if (requester.object().has("error")) {
 					String error = requester.object().get("error").toString();
 					System.out.println("error! " + error);
-					responder.json().error(400, error);
+					responder.jsonp(jsonp).error(400, error);
 					this.requester = null;
 					this.responder = null;
 					return;
@@ -171,7 +177,7 @@ public class BrowserServlet extends HttpServlet {
 				}
 			}
 		} catch (JSONException jsone) {
-			responder.json().error(500, "/browser#Server error.. Could not parse request");
+			responder.jsonp(jsonp).error(500, "/browser#Server error.. Could not parse request");
 			this.responder = null;
 			jsone.printStackTrace();
 			return;
@@ -187,7 +193,7 @@ public class BrowserServlet extends HttpServlet {
 				newName == null 
 				|| newName.equalsIgnoreCase("")
 				|| !ajs.util.Regex.find(FS.RE_VALID_FILE_NAME, newName)) {
-			responder.json().error(400, "'" + newName + "' is not a vaild filename");
+			responder.jsonp(jsonp).error(400, "'" + newName + "' is not a vaild filename");
 			this.responder = null;
 			return;
 		}
@@ -195,9 +201,9 @@ public class BrowserServlet extends HttpServlet {
 		String to = FS.concatPath(parent, newName);
 		
 		if (FileController.moveFile(path, to)) {
-			responder.json().send(200, null);
+			responder.jsonp(jsonp).send(200, null);
 		} else {
-			responder.json().error(FileController.error.code(), FileController.error.error());
+			responder.jsonp(jsonp).error(FileController.error.code(), FileController.error.error());
 		}
 		
 		this.responder = null;
@@ -211,7 +217,8 @@ public class BrowserServlet extends HttpServlet {
 	protected void doDelete(HttpServletRequest request, HttpServletResponse response) 
 						throws ServletException, IOException {
 		this.responder = new Responder(response);
-		
+		String jsonp = Requester.callbackForJSONP(request);
+		System.out.println(jsonp);
 		// the requested path
 		String uri = request.getPathInfo();
 		String path = (/*Conditions for valid URI*/
@@ -227,9 +234,9 @@ public class BrowserServlet extends HttpServlet {
 		
 		response.setStatus(202);// Accepted
 		if (FileController.deleteFile(path, false)) {
-			responder.json().send(200, null);
+			responder.jsonp(jsonp).send(200, null);
 		} else {
-			responder.error(FileController.error.code(), FileController.error.error());
+			responder.jsonp(jsonp).error(FileController.error.code(), FileController.error.error());
 		}
 		
 		this.responder = null;

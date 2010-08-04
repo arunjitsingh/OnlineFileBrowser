@@ -1,7 +1,7 @@
 /**
  * @author arunjitsingh
  */
-var $APP = $APP || {VERSION:'1.c.1737'};
+var $APP = $APP || {VERSION:'1.c.2035'};
 $APP.applicationRoot = '/OnlineFileBrowser';
 $APP.resources = {};
 $APP.resources['browser'] = '/browser';
