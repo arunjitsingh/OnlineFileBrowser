@@ -8,10 +8,11 @@ Check the downloads section for a working WAR file (includes source)
 ---
 ## Working the server
 The server has 4 servlets:  
-1. auth _(/OnlineFileBrowser/auth)_
-2. browser _(/OnlineFileBrowser/browser)_
-3. data-transfer _(/OnlineFileBrowser/data-transfer)_
-4. upload _(/OnlineFileBrowser/upload)_
+> 1. auth _(/OnlineFileBrowser/auth)_
+> 2. browser _(/OnlineFileBrowser/browser)_
+> 3. data-transfer _(/OnlineFileBrowser/data-transfer)_
+> 4. upload _(/OnlineFileBrowser/upload)_
+
 ---
 ### auth
 #### GET
