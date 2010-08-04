@@ -13,11 +13,13 @@ The server has 4 servlets:
 > 3. data-transfer _(/OnlineFileBrowser/data-transfer)_
 > 4. upload _(/OnlineFileBrowser/upload)_
 
+---
 ### auth
 #### GET
 Uses a database (MySQL in this case) to load user information based on the username & password provided.  
 Stores these in a session
 
+---
 ### browser
 #### GET
 GETs the information for the requested path (URI). Eg: **GET** `/.../browser/users/arunjitsingh/uploads`
@@ -29,6 +31,7 @@ Eg: **PUT** `/.../browser/users/arunjitsingh/OLD-DIR-NAME`; Request body: `{"nam
 #### DELETE
 DELETEs a file at the URI requested. Eg: **DELETE** `/.../browser/users/arunjitsingh/DEL-THIS-DIR`
 
+---
 ### data-transfer
 #### GET
 Download the file at the URI. Directories cannot be downloaded (yet).
