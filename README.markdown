@@ -44,7 +44,6 @@ Upload a file to the URI requested. Uses Apache Common's ServletFileUpload
 Upload a file to the URI requested. Uses Apache Common's ServletFileUpload.  
 Automatically redirects to `upload.html#success` or `upload.html#failure` in the root of the servlet's context.
 
----
 ## JSON and JSONP
 Google them to know what they are.
 #### Using JSON
