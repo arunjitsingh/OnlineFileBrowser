@@ -1,7 +1,7 @@
 /**
  * @author arunjitsingh
  */
-var $APP = $APP || {VERSION:'1.b.2220'};
+var $APP = $APP || {VERSION:'1.c.1737'};
 $APP.applicationRoot = '/OnlineFileBrowser';
 $APP.resources = {};
 $APP.resources['browser'] = '/browser';
@@ -231,8 +231,11 @@ var loadApplication = function() {
 				isD = eltcs.data().isDirectory;
 			if (id) {
 				if (isD !== undefined && isD == false) {
-					$APP.currentSelection.removeClass('.selected');
+					$APP.currentSelection.removeClass('selected');
 					$APP.currentSelection = $('.selected').last();
+					if ($APP.currentSelection.length < 1) {
+						$APP.currentSelection = $('#homedata');
+					}
 					id = $APP.currentSelection.data().id;
 				}
 				$('#overlay').css({'visibility':'visible'});
@@ -313,7 +316,7 @@ var loadApplication = function() {
 
 $APP.createNewDir = function(id, dirname) {
 	var elt = $('#new-dir');
-	var uri = $APP.asResource('browser', id) + "/" + newdir;
+	var uri = $APP.asResource('browser', id) + "/" + dirname;
 	FI.log(uri, "Creating");
 	$.create(uri, {}, $APP.newDirCreated);
 };
