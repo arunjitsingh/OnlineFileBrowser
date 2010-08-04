@@ -2,7 +2,6 @@ package ajs.web;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Enumeration;
 
 import javax.servlet.http.HttpServletRequest;
 
